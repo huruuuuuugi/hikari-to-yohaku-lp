@@ -317,7 +317,7 @@ main { position: relative; z-index: 1; }
   content: ""; position: absolute; left: 50%; bottom: 0; width: 1px; height: 40px;
   background: rgb(var(--white-rgb) / 0.7);
   transform-origin: top;
-  animation: scrollLine 2.4s ease-in-out 3;   /* 3回だけ動いて止まる(ずっと動くと静けさを壊すため) */
+  animation: scrollLine 2.4s ease-in-out infinite;   /* ずっと動かし続けて、下へ進めることを伝える */
 }
 
 /* 写真はふわっと現れるだけ(タイトルの演出を主役にするため、動きは足さない) */
