@@ -1,0 +1,682 @@
+@charset "UTF-8";
+
+/* =========================================================
+   変数：バナーから拾った色をそのまま使う
+   ========================================================= */
+:root {
+  --greige: #756a5b;      /* バナー背景のグレージュ */
+  --greige-deep: #5c5347; /* CONCEPTなど、一段暗いセクション */
+  --paper: #f3efe9;       /* 明るいセクションの背景(写真の壁の色に寄せる) */
+  --text: #3e3932;        /* 本文：真っ黒ではなく茶系の黒でやわらかく */
+  --text-sub: #625a4e;    /* 補足文字：夕方の壁色でもコントラスト4.5:1以上を確保 */
+  --white: #fbf9f6;
+  --darkroom: #2b2621;    /* 暗室(Room 02)の壁 */
+  /* 透明度だけ変えて使う色は、RGBの数値で持っておく → rgb(var(--white-rgb) / 0.7) のように使う */
+  --white-rgb: 251 249 246;
+  --text-rgb: 62 57 50;
+  --greige-rgb: 117 106 91;
+  --serif: "Shippori Mincho", "Yu Mincho", serif;
+  --en: "Cormorant Garamond", serif;
+  --num: "Jost", sans-serif;
+  --header-h: 72px;
+
+  /* ---- 線：区切り線はこの3種類だけを使う(実線のみ) ---- */
+  --line: rgb(var(--text-rgb) / 0.2);           /* ふつうの区切り線 */
+  --line-strong: var(--text);              /* 表やパネルの始まりを示す強い線 */
+  --line-light: rgb(var(--white-rgb) / 0.25); /* 暗い背景の上の区切り線 */
+
+  /* ---- 余白のものさし ----
+     余白は必ずこの中から選ぶ。大きいほど「関係が遠い」ことを表す。
+     要素間(同じかたまりの中) < ブロック間 < セクション間 の順を守る */
+  /* 要素間：PCもスマホも同じ値 */
+  --sp-1: 4px;    /* 文字にほぼくっつくもの(作家名など) */
+  --sp-2: 8px;    /* 注記・小見出し → 本文 */
+  --sp-3: 12px;   /* 英字ラベル → 見出し */
+  --sp-4: 16px;   /* 見出し → 本文 / 段落の間 */
+  --sp-5: 24px;   /* かたまりの中のグループ同士 */
+  --sp-6: 32px;   /* 大きな見出し → 本文 */
+  --sp-7: 48px;   /* パネルの内側の余白など */
+  --sp-8: 64px;   /* パネルの上下の余白など(文字と線のあいだを広く取る) */
+  /* ブロック間・セクション間：画面幅に合わせて伸び縮みする(375px〜1200pxのあいだで変化)
+     clamp(最小値, 伸び方, 最大値) … スマホでは最小値、PCでは最大値になる */
+  --block: clamp(3rem, 2.54rem + 1.94vw, 4rem);                /* 48 → 64：見出し→本文、カード同士 */
+  --block-lg: clamp(4rem, 3.09rem + 3.88vw, 6rem);             /* 64 → 96：2カラムの間、大きなかたまり同士
+                                                                 (スマホでも --block(48)より大きくして段差を残す) */
+  --section-passage: clamp(4rem, 3.09rem + 3.88vw, 6rem);      /* 64 → 96：通路(部屋と部屋のあいだ) */
+  --section-room: clamp(6rem, 5.09rem + 3.88vw, 8rem);         /* 96 → 128：展示室 */
+  --section: clamp(6rem, 4.18rem + 7.76vw, 10rem);             /* 96 → 160：ふつうのセクション */
+  --gutter: clamp(1.25rem, 0.68rem + 2.42vw, 2.5rem);          /* 20 → 40：画面の左右の余白 */
+  --content: 1120px;   /* 中身の最大幅：すべてのセクションでこの幅にそろえ、左端の位置を一致させる */
+
+  /* ---- 館内の時間(main.jsがスクロール量に合わせて書き換える) ---- */
+  --wall: var(--paper);  /* 壁の色：朝は白っぽく → 午後は琥珀 → 夕方は深く */
+  --warm: 0;             /* 写真の暖色寄せ 0〜1(0.1刻み) */
+}
+
+/* =========================================================
+   ベース
+   ========================================================= */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: var(--header-h); }
+body {
+  margin: 0;
+  font-family: var(--serif);
+  color: var(--text);
+  background: var(--wall);   /* ページ全体が1枚の「壁」。明るいセクションは背景を持たず、この壁を見せる */
+  line-height: 2;
+  letter-spacing: 0.08em;
+  -webkit-font-smoothing: antialiased;
+}
+img { display: block; max-width: 100%; height: auto; }
+figure, h1, h2, h3, p, ul, ol, dl, dd, blockquote { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+a { color: inherit; text-decoration: none; }
+small { font-size: inherit; }
+
+/* main を差し込む光(.sunlight)より上に重ねる → 光は壁にだけ当たり、文字や写真には重ならない */
+main { position: relative; z-index: 1; }
+
+.inner { width: min(var(--content), 100% - var(--gutter) * 2); margin-inline: auto; }
+.inner--narrow { width: min(880px, 100% - var(--gutter) * 2); }
+.sp-only { display: none; }
+.pc-only { display: inline; }   /* PCだけで改行したい <br> に付ける */
+
+/* 英字ラベル(セクションの見出しの上) */
+.label {
+  font-family: var(--en);
+  font-style: italic;
+  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  color: var(--text-sub);
+}
+.label--light { color: rgb(var(--white-rgb) / 0.8); }
+
+/* 英字の副ラベル：役割が同じものは、すべて同じ書式にそろえる */
+.interlude__num, .info__en, .artist__en, .caption__best span, .guide__floor {
+  font-family: var(--en);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  color: var(--text-sub);
+}
+
+.sec-head { margin-bottom: var(--sp-7); }   /* 見出しは、下の一覧に近づけて結びつける */
+.sec-title { font-size: clamp(1.4rem, 1.2rem + 0.9vw, 1.75rem); font-weight: 500; margin-top: var(--sp-3); letter-spacing: 0.15em; }
+
+/* 時間に合わせて写真もほんの少し色づく(夕方ほど暖かく) */
+.room__work img, .interlude__img img, .bench__img img, .artist__img img {
+  filter: sepia(calc(var(--warm) * 0.22)) saturate(calc(1 + var(--warm) * 0.15));
+}
+
+/* =========================================================
+   HEADER：最初は透明、スクロールしたら背景がつく(main.jsで .is-scrolled を付与)
+   ========================================================= */
+.header {
+  position: fixed; inset: 0 0 auto 0; z-index: 100;
+  height: var(--header-h);
+  padding: 0 var(--gutter);
+  display: flex; align-items: center; gap: var(--sp-7);
+  color: var(--white);
+  transition: background 0.4s, color 0.4s;
+}
+/* 背景は「いまの壁の色」に合わせる(--wall は main.js がヘッダーにも書き込む) */
+.header.is-scrolled { background: color-mix(in srgb, var(--wall) 94%, transparent); color: var(--text); }
+.header__logo { font-size: 1.2rem; letter-spacing: 0.3em; }
+.header__nav { margin-left: auto; }
+.header__nav ul { display: flex; gap: var(--sp-6); }
+.header__nav a { font-family: var(--en); font-size: 1.05rem; letter-spacing: 0.12em; }
+.header__btn {
+  font-family: var(--en); font-size: 1.05rem; letter-spacing: 0.15em;
+  border: 1px solid currentColor; padding: var(--sp-1) var(--sp-5);
+  transition: background 0.3s, color 0.3s;
+}
+.header__btn:hover { background: var(--white); color: var(--greige); }
+.header.is-scrolled .header__btn:hover { background: var(--greige); color: var(--white); }
+
+/* =========================================================
+   フロアマップ
+   美術館のフロアガイドのように、いまいる部屋を平面図で示す
+   - 現在の部屋：グレージュで塗る ／ 通った部屋：薄く残す
+   - 下のバー：現在地の部屋名。バーの下線が「見学の進み具合」
+   ========================================================= */
+.guide {
+  position: fixed; left: var(--sp-5); bottom: var(--sp-5); z-index: 90;
+  width: 232px;
+  background: rgb(var(--white-rgb) / 0.94);
+  box-shadow: 0 10px 30px -18px rgba(50, 40, 30, 0.5);
+  color: var(--text);
+  opacity: 0; translate: 0 8px; visibility: hidden;
+  transition: opacity 0.6s, translate 0.6s, visibility 0.6s;
+}
+.guide.is-visible { opacity: 1; translate: 0 0; visibility: visible; }
+
+/* 地図部分：.is-open のときだけ開く(高さをアニメーションさせるため grid を使う)
+   閉じているあいだは main.js で inert を付け、中のリンクにフォーカスが行かないようにする */
+.guide__map {
+  display: grid; grid-template-rows: 0fr;
+  transition: grid-template-rows 0.5s ease;
+}
+.guide__inner { overflow: hidden; min-height: 0; }
+.guide.is-open .guide__map { grid-template-rows: 1fr; }
+/* マップの見出しと、閉じるボタン(×) */
+.guide__head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-2) var(--sp-2) 0 var(--sp-4); }
+.guide__floor { font-size: 0.8rem; line-height: 1; }
+.guide__close {
+  width: 32px; height: 32px;   /* 小さくてもタップしやすい大きさを確保 */
+  display: grid; place-items: center;
+  font-size: 1.2rem; line-height: 1; color: var(--text-sub);
+  background: none; border: none; cursor: pointer;
+  transition: color 0.3s;
+}
+.guide__close:hover { color: var(--text); }
+.floor { display: block; width: 100%; height: auto; padding: var(--sp-2) var(--sp-3) var(--sp-1); }
+
+/* 平面図の部屋 */
+.floor__room rect {
+  fill: transparent; stroke: rgb(var(--text-rgb) / 0.55); stroke-width: 1;
+  transition: fill 0.6s;
+}
+.floor__room text {
+  font-family: var(--en); font-size: 11px; letter-spacing: 0.08em;
+  font-variant-numeric: lining-nums;   /* 数字の高さを揃えて読みやすく */
+  fill: var(--text-sub); text-anchor: middle; pointer-events: none;
+  transition: fill 0.6s;
+}
+.floor__room:hover rect, .floor__room:focus-visible rect { fill: rgb(var(--greige-rgb) / 0.18); }
+.floor__room:focus-visible { outline: none; }
+.floor__room:focus-visible rect { stroke: var(--text); stroke-width: 2; }
+.floor__room.is-visited rect { fill: rgb(var(--greige-rgb) / 0.12); }
+.floor__room.is-current rect { fill: var(--greige); stroke: var(--greige); }
+.floor__room.is-current text { fill: var(--white); }
+.floor__room--dark rect { stroke-dasharray: 2 2; }   /* 暗室は点線で区別(図面の記号) */
+.floor__route { fill: none; stroke: rgb(var(--greige-rgb) / 0.45); stroke-width: 1; stroke-dasharray: 1 3; }
+
+/* 現在地のしるし：部屋から部屋へ、すっと移動する(位置は main.js が transform で動かす) */
+.floor__here {
+  fill: #b5865a; stroke: var(--white); stroke-width: 1.5;
+  transition: transform 0.8s ease;
+}
+
+/* 現在地のバー */
+.guide__bar {
+  position: relative;
+  display: flex; align-items: baseline; gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3) var(--sp-3) var(--sp-4);
+}
+.guide.is-open .guide__bar { border-top: 1px solid var(--line); }
+.guide__room { font-family: var(--en); font-style: italic; font-size: 0.95rem; letter-spacing: 0.12em; min-width: 6.5em; font-variant-numeric: lining-nums; }
+.guide__label { font-size: 0.75rem; letter-spacing: 0.15em; color: var(--text-sub); white-space: nowrap; }   /* 「現在地」が2行に折れないように */
+/* 「Map」ボタン：マップを閉じているときだけ表示する */
+.guide__open {
+  margin-left: auto; align-self: center;
+  font: italic 0.85rem var(--en); letter-spacing: 0.12em; color: var(--text);
+  background: none; border: 1px solid rgb(var(--text-rgb) / 0.4);
+  padding: 2px var(--sp-3);   /* 上下2pxは例外：小さなボタンの高さを文字に合わせるため */
+  cursor: pointer;
+}
+.guide__open:hover { background: var(--greige); border-color: var(--greige); color: var(--white); }
+.guide.is-open .guide__open { display: none; }
+/* 進み具合の線：main.js が scale を書き換える */
+.guide__progress {
+  position: absolute; left: 0; bottom: 0; height: 2px; width: 100%;
+  background: var(--greige);
+  transform-origin: left; transform: scaleX(0);
+}
+
+/* =========================================================
+   差し込む光：窓枠の形をした光の帯を「壁」に落とす
+   main より下に置くので、光が当たるのは背景(壁)だけ。文字の読みやすさは変わらない。
+   暗い部屋(第1章・暗室・ベンチ・チケット)はそれぞれの背景が光を隠す。
+   動かすのは transform(位置と傾き)だけ → 毎回描き直さずに済み、軽い
+   ========================================================= */
+.sunlight {
+  position: fixed; inset: -15%; z-index: 0; pointer-events: none;
+  --sun-rgb: 255 250 240;   /* 光の色(時間帯ごとに main.js が切り替える) */
+  /* ぼかし(filter)を使わず、グラデーションの境目をゆるやかにして光のにじみを表す */
+  background:
+    repeating-linear-gradient(
+      -55deg,
+      transparent 0 13%,
+      rgb(var(--sun-rgb) / 0.6) 16% 21%,
+      transparent 23% 24%,
+      rgb(var(--sun-rgb) / 0.6) 25% 30%,
+      transparent 33% 46%
+    );
+  /* 画面の端に向かって光を弱める(窓から遠いほど暗い) */
+  -webkit-mask-image: radial-gradient(ellipse 60% 55% at 60% 40%, #000 25%, transparent 72%);
+          mask-image: radial-gradient(ellipse 60% 55% at 60% 40%, #000 25%, transparent 72%);
+  will-change: transform;
+}
+
+/* =========================================================
+   ENTRANCE (FV)：バナーの構図をWeb用に拡大
+   - 写真は中央の横長ブロック
+   - 縦書きタイトルが写真の左端に「かかる」ことで奥行きをつくる
+   ========================================================= */
+.fv {
+  position: relative;
+  min-height: 100svh;
+  background: var(--greige);
+  color: var(--white);
+  display: grid; place-items: center;
+  /* 下は「Scroll」表示の高さ(位置24＋線48＋文字)ぶんを空けて、内容と重ならないようにする */
+  padding: calc(var(--header-h) + var(--sp-6)) var(--gutter) calc(var(--sp-5) + var(--sp-7) + 2.5rem);
+  overflow: hidden;
+}
+.fv__inner {
+  position: relative;
+  width: min(var(--content), 100%);
+  display: grid;
+  padding-left: 7%;
+}
+.fv__photo {
+  aspect-ratio: 736 / 278;          /* バナーの写真と同じ比率 */
+  overflow: hidden;
+  animation: photoIn 1.8s ease-out both;
+}
+.fv__photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; } /* 窓の光が斜めに走る部分を切り取る */
+.fv__visual { position: relative; }
+/* 1文字ずつ縦に積む(writing-modeではなくflexの縦並びで、文字の間隔を調整しやすくする) */
+.fv__title {
+  position: absolute; z-index: 2;
+  left: 8%; top: 50%; translate: 0 -50%;
+  font-size: clamp(3rem, 7vw, 6.2rem);
+  font-weight: 400;
+  line-height: 1;
+  display: flex; flex-direction: column; gap: 0.35em;
+}
+.fv__title span { display: block; opacity: 0; animation: charIn 1.2s ease-out forwards; }
+/* 1文字ずつ遅らせて表示(光がゆっくり差し込むイメージ) */
+.fv__title span:nth-child(1) { animation-delay: 0.6s; }
+.fv__title span:nth-child(2) { animation-delay: 0.85s; }
+.fv__title span:nth-child(3) { animation-delay: 1.1s; }
+.fv__title span:nth-child(4) { animation-delay: 1.35s; }
+.fv__lead {
+  justify-self: start;
+  margin: 0 0 var(--sp-6) 30%;
+  font-size: clamp(0.95rem, 1.6vw, 1.3rem);
+  letter-spacing: 0.3em;
+  animation: fadeUp 1.2s 1.6s ease-out both;
+}
+.fv__info {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin: var(--sp-6) 0 0 30%;
+  animation: fadeUp 1.2s 1.9s ease-out both;
+}
+.fv__date { font-family: var(--num); font-weight: 300; font-size: clamp(1.4rem, 3vw, 2.4rem); letter-spacing: 0.06em; }
+.fv__date small { font-family: var(--en); font-size: 0.4em; margin-left: 0.4em; letter-spacing: 0.1em; }
+.fv__dash { margin: 0 0.5em; }
+.fv__place { font-size: clamp(0.9rem, 1.3vw, 1.1rem); letter-spacing: 0.12em; }
+.fv__scroll {
+  position: absolute; bottom: var(--sp-5); left: 50%; translate: -50% 0;
+  font-family: var(--en); font-size: 0.9rem; letter-spacing: 0.2em;
+  padding-bottom: var(--sp-7);
+}
+.fv__scroll::after {
+  content: ""; position: absolute; left: 50%; bottom: 0; width: 1px; height: 40px;
+  background: rgb(var(--white-rgb) / 0.7);
+  transform-origin: top;
+  animation: scrollLine 2.4s ease-in-out 3;   /* 3回だけ動いて止まる(ずっと動くと静けさを壊すため) */
+}
+
+/* 写真はふわっと現れるだけ(タイトルの演出を主役にするため、動きは足さない) */
+@keyframes photoIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes charIn { from { opacity: 0; filter: blur(8px); } to { opacity: 1; filter: blur(0); } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes scrollLine { 0% { scale: 1 0; } 50% { scale: 1 1; transform-origin: top; } 51% { transform-origin: bottom; } 100% { scale: 1 0; transform-origin: bottom; } }
+
+/* =========================================================
+   ごあいさつ：美術館の入口にある壁面パネル
+   白い壁に、文字だけが直接貼られているように見せる
+   ========================================================= */
+.greeting {
+  min-height: 100svh;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  padding: var(--section) var(--gutter);
+}
+.panel {
+  width: min(560px, 100%);
+  padding: var(--sp-8) var(--sp-7);
+  border-top: 1px solid var(--line-strong);
+  border-bottom: 1px solid var(--line);
+}
+.panel__head { font-size: 0.9rem; letter-spacing: 0.4em; color: var(--text-sub); }
+.panel__title { font-size: clamp(1.35rem, 1.15rem + 0.9vw, 1.75rem); font-weight: 500; margin: var(--sp-3) 0 var(--sp-6); letter-spacing: 0.2em; line-height: 1.9; }
+.panel__text p { font-size: 0.95rem; line-height: 2.3; text-align: justify; }
+.panel__text p + p { margin-top: var(--sp-5); }
+.panel__sign { margin-top: var(--sp-6); text-align: right; font-size: 0.85rem; letter-spacing: 0.2em; }
+.greeting__hint { width: min(560px, 100%); margin-top: var(--block-lg); font-size: 0.85rem; color: var(--text-sub); letter-spacing: 0.15em; }
+
+/* アイコン共通：文字と同じ色・大きさで並ぶ */
+.icon { width: 1.25em; height: 1.25em; flex-shrink: 0; }
+
+/* 撮影案内：パネルと同じく「壁に直接書かれた文字」として置く(枠や記号は付けない)
+   パネルの内側の余白(64)より広く離して、別のかたまりだとわかるようにする */
+.photo-ok { width: min(560px, 100%); margin-top: var(--block-lg); }
+.photo-ok__head { display: inline-flex; align-items: center; gap: var(--sp-2); font-size: 1.05rem; font-weight: 500; letter-spacing: 0.2em; }
+.photo-ok__text { font-size: 0.88rem; margin-top: var(--sp-4); }
+.photo-ok__text + .photo-ok__text { margin-top: var(--sp-3); }   /* 「撮れる作品」と「撮れない作品」の段落を分ける */
+/* 短い案内文は、文節の切れ目で改行する(「くださ／い。」のような半端な折り返しを防ぐ)
+   keep-all：文字の途中では改行しない → HTMLの <wbr>(改行してよい位置)と句読点でだけ改行する。
+   overflow-wrap: anywhere：それでも収まらないときだけ、途中で折り返して はみ出しを防ぐ */
+.phrase { word-break: keep-all; overflow-wrap: anywhere; }
+.photo-ok__note { font-size: 0.8rem; color: var(--text-sub); margin-top: var(--sp-2); }
+
+/* =========================================================
+   第1章 解説(CONCEPT)：暗い背景で、展示室に入る前に空気を切り替える
+   ========================================================= */
+.concept { background: var(--greige-deep); color: var(--white); padding: var(--section) 0; overflow: hidden; }
+.concept__inner {
+  width: min(var(--content), 100% - var(--gutter) * 2); margin-inline: auto;
+  display: grid; grid-template-columns: 5fr 6fr; gap: var(--block-lg); align-items: center;
+}
+.concept__visual { position: relative; }
+.concept__visual img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+.concept__title {
+  position: absolute; top: calc(var(--sp-6) * -1); right: calc(var(--sp-7) * -1);
+  writing-mode: vertical-rl;
+  font-size: clamp(1.6rem, 3.2vw, 2.6rem);
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  line-height: 1.8;
+}
+.concept__lead { font-size: clamp(1rem, 0.95rem + 0.25vw, 1.15rem); line-height: 2.3; margin: var(--sp-5) 0 var(--block); }
+.concept__list li {
+  display: grid; grid-template-columns: 56px 1fr; gap: var(--sp-5); align-items: start;
+  padding: var(--sp-5) 0; border-top: 1px solid var(--line-light);
+}
+.concept__list li:last-child { border-bottom: 1px solid var(--line-light); }
+.concept__kanji { font-size: 2.2rem; font-weight: 400; line-height: 1; color: rgb(var(--white-rgb) / 0.85); }
+.concept__list p { font-size: 0.9rem; }
+
+/* =========================================================
+   展示室：1作品＝1部屋(画面いっぱい)
+   作品を壁に掛け、横にキャプションプレートを置く
+   ========================================================= */
+.room {
+  position: relative;
+  min-height: 100svh;
+  display: grid; align-items: center;
+  /* 上下の余白：ふだんは --section-room。ただし画面の高さの10%を上限にして、
+     背の低い画面(ノートPCなど)でも「1作品＝1部屋」が1画面に収まるようにする */
+  --room-pad: min(var(--section-room), 10svh);
+  padding: var(--room-pad) var(--gutter);
+  overflow: hidden; /* 作品のスポットライトが画面外にはみ出さないように */
+}
+/* 部屋番号：展示室の入口にある室名サインのイメージ
+   壁(.room__wall)の1行目に置くので、作品の左端にそろい、作品と重ならない */
+.room__no {
+  grid-column: 1 / -1; order: -1;
+  margin-bottom: var(--sp-6);
+  line-height: 1;
+  font-family: var(--en); font-style: italic; font-weight: 400; font-size: 1rem; letter-spacing: 0.2em; color: var(--text-sub);
+}
+.room__no span { font-family: var(--num); font-style: normal; font-weight: 300; font-size: clamp(1.9rem, 1.7rem + 0.9vw, 2.4rem); letter-spacing: 0.05em; margin-left: 0.3em; color: var(--text); }
+.room__wall {
+  width: min(var(--content), 100%); margin-inline: auto;
+  /* 列のあいだ(作品⇔キャプション)だけ広く空ける。行のあいだ(部屋番号⇔作品)は部屋番号の margin で決める */
+  display: grid; grid-template-columns: 7fr 4fr; column-gap: var(--block-lg); align-items: end;
+}
+.room__wall--reverse { grid-template-columns: 4fr 7fr; }
+.room__wall--reverse .room__work { order: 2; }
+/* 広い画面ではマップを開いておくので、左右にマップ1枚分の余白を取って作品と重ならないようにする
+   (通路の文章・作家の一覧も同じ。そちらは各セクションの後ろに書いてある) */
+@media (min-width: 1400px) {
+  .room__wall { width: min(var(--content), 100% - 560px); grid-template-columns: 3fr 2fr; }
+  .room__wall--reverse { grid-template-columns: 2fr 3fr; }
+}
+
+/* 作品：上からスポットライトが当たっているように
+   isolation: isolate で「重なりの基準」をここに作る → スポットライト(z-index:-1)が部屋の背景の下に潜らない */
+.room__work { position: relative; justify-self: center; align-self: start; isolation: isolate; }   /* 作品は部屋番号のすぐ下に掛ける */
+.room__work::before {
+  content: ""; position: absolute; inset: -18% -22% auto; height: 70%; z-index: -1;
+  /* 光の中心を内側に置き、四方へなだらかに消す(端に線が出ないように) */
+  background: radial-gradient(ellipse 50% 50% at 50% 50%, rgb(255 250 240 / 0.85), transparent 100%);
+}
+.room__work img {
+  /* 1作品＝1部屋：部屋の上下の余白と部屋番号(約4.5rem)を引いた高さに収める。
+     幅・高さとも auto にしておくと、縦横の比率を保ったまま小さくなる */
+  width: auto;
+  max-width: min(560px, 100%);
+  max-height: max(320px, calc(100svh - var(--room-pad) * 2 - 4.5rem));
+  box-shadow: 0 16px 32px -20px rgb(50 40 30 / 0.25);   /* 壁に掛かっている距離感の、ごく薄い影 */
+}
+
+/* キャプションプレート：作品名 → 作家 → 素材・サイズ → 撮影可否 → 解説 → 補足 の順 */
+.caption { max-width: 340px; padding-left: var(--sp-5); border-left: 1px solid var(--line); }
+.caption__title { font-size: 1.45rem; font-weight: 500; letter-spacing: 0.15em; }
+.caption__artist { font-size: 0.9rem; margin-top: var(--sp-1); }
+.caption__artist span { font-family: var(--en); font-style: italic; color: var(--text-sub); margin-left: 0.6em; }
+.caption__meta { font-family: var(--num); font-weight: 300; font-size: 0.82rem; color: var(--text-sub); line-height: 1.9; margin-top: var(--sp-4); letter-spacing: 0.06em; }
+/* 撮影できるか：アイコン＋文字。見落とされないよう本文より少し太く。
+   「撮影不可」も同じ濃さにする(できないことのほうが大事な情報なので、薄くしない) */
+.caption__photo { display: flex; align-items: center; gap: var(--sp-2); margin-top: var(--sp-4); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.15em; }
+.caption__photo small { font-weight: 400; color: var(--text-sub); }
+.caption__text { font-size: 0.88rem; margin-top: var(--sp-5); }
+.caption__best {
+  margin-top: var(--sp-6); padding-top: var(--sp-4); border-top: 1px solid var(--line);
+  font-size: 0.85rem; line-height: 1.8;
+}
+.caption__best span { display: block; }
+
+/* 暗室：Room 02 だけは時間に関係なく暗い部屋 */
+.room--dark { background: var(--darkroom); color: var(--white); }
+.room--dark .room__no, .room--dark .caption__meta, .room--dark .caption__photo small,
+.room--dark .caption__artist span, .room--dark .caption__best span { color: rgb(var(--white-rgb) / 0.7); }
+.room--dark .room__no span { color: var(--white); }
+.room--dark .caption, .room--dark .caption__best { border-color: var(--line-light); }
+.room--dark .room__work::before { background: radial-gradient(ellipse at 50% 30%, rgba(255, 230, 190, 0.12), transparent 70%); }
+.room--dark .room__work img { box-shadow: none; }
+
+/* =========================================================
+   部屋と部屋のあいだ(通路)：来館者が写った写真で「自分がいる」想像をさせる
+   ========================================================= */
+.interlude {
+  position: relative;
+  display: grid; grid-template-columns: repeat(12, 1fr); align-items: center;
+  padding: var(--section-passage) 0;
+}
+.interlude__img { grid-column: 1 / 10; grid-row: 1; }
+.interlude__img img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.interlude__text {
+  grid-column: 9 / 12; grid-row: 1; z-index: 1;
+  background: rgb(var(--white-rgb) / 0.9); padding: var(--sp-7);
+}
+.interlude--reverse .interlude__img { grid-column: 4 / 13; }
+.interlude--reverse .interlude__text { grid-column: 2 / 5; }
+/* 広い画面(マップが開いている)では、左側の文章をマップより右へずらす */
+@media (min-width: 1400px) {
+  .interlude--reverse .interlude__text { grid-column: 3 / 6; }
+}
+.interlude__title { font-size: clamp(1.2rem, 1.07rem + 0.55vw, 1.45rem); font-weight: 500; letter-spacing: 0.2em; margin: var(--sp-3) 0 var(--sp-4); }
+.interlude__text p:last-child { font-size: 0.9rem; }
+
+/* =========================================================
+   ベンチ：全幅の写真＋1行だけの言葉で、スクロールの速度を落とさせる
+   写真は動かさない(「写真の中で、光は止まっています」というExitの言葉とそろえる)
+   ========================================================= */
+/* 写真をセクションいっぱいに敷き、文字は必ず写真の上に重ねる */
+.bench { position: relative; height: 100svh; min-height: 560px; overflow: hidden; color: var(--white); }
+.bench__img { position: absolute; inset: 0; }
+.bench__img img { width: 100%; height: 100%; object-fit: cover; }
+/* 文字の下だけを暗くして読みやすくする */
+.bench__img::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(30, 25, 20, 0.78) 0%, rgba(30, 25, 20, 0.45) 35%, transparent 65%);
+}
+.bench__text {
+  position: absolute; left: 0; right: 0; bottom: 12%;
+  text-align: center; padding: 0 var(--gutter);
+}
+.bench__text p:first-child { font-size: clamp(1.4rem, 2.6vw, 2rem); letter-spacing: 0.3em; }
+.bench__sub { font-size: 0.95rem; margin-top: var(--sp-5); }
+
+/* =========================================================
+   作家のことば
+   ========================================================= */
+.artists { padding: var(--section) 0; }
+.artists__list { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--block); }
+.artist__img { overflow: hidden; margin-bottom: var(--sp-5); }
+.artist__img img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+.artist__quote { font-size: 1.15rem; letter-spacing: 0.12em; margin-bottom: var(--sp-4); }
+.artist__name { font-size: 1.25rem; font-weight: 500; letter-spacing: 0.2em; margin-bottom: var(--sp-3); }
+.artist__text { font-size: 0.86rem; }
+/* 真ん中だけ少し下げて、3枚並びの単調さを崩す */
+.artist:nth-child(2) { margin-top: var(--sp-8); }
+/* 広い画面(マップが開いている)では、一覧を左右に狭めてマップと重ならないようにする */
+@media (min-width: 1400px) {
+  .artists .inner { width: min(var(--content), 100% - 560px); }
+}
+
+/* =========================================================
+   EXIT：擬似体験の終わり。「本物は動いている」と伝える
+   ほかの展示室と同じく、画面いっぱいの「1部屋」として扱う
+   ========================================================= */
+.exit {
+  min-height: 100svh;
+  display: grid; place-items: center;
+  padding: var(--section) var(--gutter);
+  text-align: center;
+}
+.exit__lead { font-size: clamp(1.5rem, 3vw, 2.3rem); letter-spacing: 0.22em; }
+.exit__text { font-size: 0.95rem; line-height: 2.4; margin-top: var(--sp-6); color: var(--text-sub); }
+
+/* =========================================================
+   ご来館案内：ラベル列と内容列を揃えて、必要な情報を拾いやすく
+   ========================================================= */
+.information { padding: var(--section) 0; }
+
+/* おすすめの時間帯：来館の「いつ」を決めてもらう */
+.besttime { margin-bottom: var(--block); padding: var(--sp-6) var(--sp-7); background: rgb(var(--white-rgb) / 0.7); }
+.besttime__head { font-size: 1.05rem; font-weight: 500; letter-spacing: 0.2em; margin-bottom: var(--sp-4); }
+.besttime li { display: grid; grid-template-columns: 170px 1fr; gap: var(--sp-4); padding: var(--sp-3) 0; font-size: 0.9rem; border-top: 1px solid var(--line); }
+.besttime li span { font-family: var(--num); font-weight: 300; letter-spacing: 0.06em; }
+
+.info { border-top: 1px solid var(--line-strong); }
+.info__row {
+  display: grid; grid-template-columns: 200px 1fr; gap: var(--sp-6);
+  padding: var(--sp-5) 0; border-bottom: 1px solid var(--line);
+}
+.info { font-size: 0.95rem; }
+.info dt { font-weight: 500; letter-spacing: 0.15em; }
+.info__en { display: block; line-height: 1.4; }
+.info__big { font-family: var(--num); font-weight: 300; font-size: clamp(1.5rem, 1.4rem + 0.45vw, 1.8rem); letter-spacing: 0.06em; line-height: 1.5; }
+.info__big small { font-family: var(--en); font-size: 0.45em; margin: 0 0.3em; }
+.info__note { font-size: 0.8rem; color: var(--text-sub); margin-top: var(--sp-2); line-height: 1.9; }
+.price { border-collapse: collapse; width: min(420px, 100%); }
+.price th, .price td { padding: var(--sp-2) 0; border-bottom: 1px solid var(--line); }
+.price th { text-align: left; font-weight: 400; font-size: 0.92rem; }
+.price td { text-align: right; font-family: var(--num); font-weight: 300; font-size: 1.05rem; }
+
+/* =========================================================
+   TICKET / CTA：FVと同じ写真で締めくくり、世界観を回収する
+   ========================================================= */
+.cta { position: relative; padding: var(--section) var(--gutter); color: var(--white); text-align: center; overflow: hidden; }
+.cta__bg { position: absolute; inset: 0; }
+.cta__bg img { width: 100%; height: 100%; object-fit: cover; }
+/* 写真全体は薄く暗くして窓の光を残し、文字の後ろだけを濃くする */
+.cta__bg::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 50%, rgba(60, 52, 44, 0.5), transparent 100%),
+    rgba(92, 83, 71, 0.55);
+}
+.cta__inner { position: relative; }
+.cta .label { justify-content: center; }
+.cta__title { font-size: clamp(1.6rem, 3.4vw, 2.4rem); font-weight: 500; letter-spacing: 0.2em; margin: var(--sp-3) 0 var(--sp-5); }
+.cta__text { font-size: 0.92rem; text-wrap: balance; }   /* 中央揃えの2行を同じくらいの長さに */
+.cta__btns { display: flex; justify-content: center; gap: var(--sp-4); margin-top: var(--sp-7); flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 260px; padding: var(--sp-4) var(--sp-6);
+  font-size: 0.95rem; letter-spacing: 0.2em;
+  transition: background 0.3s, color 0.3s;
+}
+.btn--primary { background: var(--white); color: var(--greige-deep); border: 1px solid var(--white); }
+.btn--primary::after { content: "→"; margin-left: var(--sp-4); transition: translate 0.3s; }
+.btn--primary:hover { background: transparent; color: var(--white); }
+.btn--primary:hover::after { translate: 6px 0; }
+.btn--ghost { border: 1px solid rgb(var(--white-rgb) / 0.7); color: var(--white); }
+.btn--ghost:hover { background: rgb(var(--white-rgb) / 0.12); }
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+.footer { position: relative; z-index: 1; background: var(--greige); color: var(--white); text-align: center; padding: var(--block) var(--gutter) var(--sp-6); }
+.footer__name { font-size: 1.1rem; letter-spacing: 0.25em; }
+.footer__address { font-size: 0.8rem; margin: var(--sp-2) 0 var(--sp-6); }
+.footer__copy { font-family: var(--en); font-size: 0.8rem; opacity: 0.9; letter-spacing: 0.1em; }
+
+/* =========================================================
+   スクロールでふわっと表示(main.jsで .is-show を付与)
+   html.js のときだけ隠す → JSが動かなくても本文は読める
+   ========================================================= */
+.js .js-fade { opacity: 0; transform: translateY(12px); transition: opacity 1.2s ease, transform 1.2s ease; }
+.js .js-fade.is-show { opacity: 1; transform: none; }
+
+/* 動きを減らす設定のユーザーにはアニメーションを止める */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .js .js-fade, .fv__title span { opacity: 1; transform: none; }
+  .sunlight { display: none; }
+}
+
+/* =========================================================
+   レスポンシブ(SP：〜767px)
+   余白は上の変数(clamp)が自動で縮むので、ここではレイアウトの切り替えだけを書く
+   ========================================================= */
+@media (max-width: 767px) {
+  :root { --header-h: 60px; }
+  .sp-only { display: inline; }
+  .pc-only { display: none; }
+  .header__nav { display: none; }
+  .header__btn { margin-left: auto; }
+
+  /* SPのフロアマップ：普段はバーだけ。Mapボタンで開く */
+  .guide { left: var(--sp-3); bottom: var(--sp-3); width: min(260px, 100% - var(--sp-5)); }
+  .guide__room { font-size: 0.85rem; min-width: 5.5em; }
+  .guide__open { padding: var(--sp-2) var(--sp-3); }   /* タップしやすい大きさに */
+
+  /* FV：写真を縦長にして、タイトルが写真の左端にかかるように */
+  .fv__inner { padding-left: 0; }
+  .fv__photo { aspect-ratio: 3 / 4; margin-left: 14%; }
+  .fv__photo img { object-position: 38% 50%; }
+  .fv__title { left: 2%; }
+  .fv__lead { margin: 0 0 var(--sp-5) 14%; font-size: 0.85rem; letter-spacing: 0.2em; }
+  .fv__info { margin: var(--sp-5) 0 0 14%; flex-direction: column; gap: var(--sp-1); }
+
+  .panel { padding: var(--sp-7) 0; }
+  .panel__text p { font-size: 0.88rem; }
+  .photo-ok__head { font-size: 1rem; letter-spacing: 0.12em; }   /* 見出しが1行に収まるように */
+
+  .concept__inner { grid-template-columns: 1fr; }
+  .concept__visual { width: 82%; }
+  .concept__title { right: -18%; top: calc(var(--sp-5) * -1); }
+  .concept__list li { grid-template-columns: 44px 1fr; gap: var(--sp-4); }
+  .concept__kanji { font-size: 1.9rem; }
+
+  .room__wall, .room__wall--reverse { grid-template-columns: 1fr; }
+  .caption { max-width: none; margin-top: var(--sp-7); }   /* 縦1列：作品→キャプションは48(部屋番号→作品の32より広く) */
+  .room__wall--reverse .room__work { order: 0; }
+  .room__work img { max-height: 62svh; }
+
+  .interlude { display: block; }
+  .interlude__text { margin: calc(var(--sp-7) * -1) var(--gutter) 0; position: relative; padding: var(--sp-6) var(--sp-5); }
+
+  .bench__text { bottom: 14%; }
+
+  .artists__list { grid-template-columns: 1fr; }
+  .artist:nth-child(2) { margin-top: 0; }
+  .artist__img { width: 80%; }
+
+  .exit__lead { letter-spacing: 0.16em; line-height: 1.9; }
+
+  .besttime { padding: var(--sp-5); }
+  .besttime li { grid-template-columns: 1fr; gap: 0; }
+  .info__row { grid-template-columns: 1fr; gap: var(--sp-2); }
+
+  .btn { width: 100%; min-width: 0; }
+}

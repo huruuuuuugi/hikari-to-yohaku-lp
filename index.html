@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>光と余白｜○○現代美術館 企画展</title>
+  <meta name="description" content="○○現代美術館 企画展「光と余白」10.18 SAT – 12.14 SUN。日常の中に、静かな時間を。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- 明朝(見出し・本文)＋欧文セリフ(英字ラベル)＋細身サンセリフ(日付・数字)
+       実際に使っている太さだけを読み込む(和文フォントは特に重いため) -->
+  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Jost:wght@300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- JSが動く環境でだけフェード演出を有効にする(JSが止まっても本文が消えないように) -->
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+  <!-- ===== アイコン定義 =====
+       カメラのアイコンを1か所で定義し、<use href="#icon-camera"> で使い回す
+       #icon-camera-off は斜線入り(撮影不可の作品用) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="icon-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round">
+      <path d="M3 8.5h4l1.6-2.5h6.8L17 8.5h4V19H3z" />
+      <circle cx="12" cy="13.2" r="3.6" />
+    </symbol>
+    <symbol id="icon-camera-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round">
+      <path d="M3 8.5h4l1.6-2.5h6.8L17 8.5h4V19H3z" />
+      <circle cx="12" cy="13.2" r="3.6" />
+      <path d="M3.5 3.5l17 17" stroke-width="1.6" stroke-linecap="round" />
+    </symbol>
+  </svg>
+
+  <!-- ===== HEADER ===== -->
+  <header class="header js-header">
+    <a href="#top" class="header__logo">光と余白</a>
+    <nav class="header__nav">
+      <ul>
+        <li><a href="#greeting">Greeting</a></li>
+        <li><a href="#walk01">Gallery</a></li>
+        <li><a href="#information">Information</a></li>
+      </ul>
+    </nav>
+    <a href="#ticket" class="header__btn">Ticket</a>
+  </header>
+
+  <!-- ===== フロアマップ =====
+       美術館の「フロアガイド」。いまいる部屋が色づき、通った部屋は薄く残る。
+       部屋をクリックすると、その展示室へ移動できる。
+       展示室(Room 01)に入ると表示される。広いPC画面(1400px以上)では自動で開き、
+       それより狭い画面では「Map」ボタンで開く。右上の × で閉じられる(main.jsで制御) -->
+  <nav class="guide js-guide" aria-label="フロアマップ">
+    <!-- 閉じているあいだは inert(中のリンクにフォーカスが行かない)。開閉は main.js が切り替える -->
+    <div class="guide__map" id="guide-map" inert>
+      <div class="guide__inner">
+      <div class="guide__head">
+        <p class="guide__floor">2F 企画展示室</p>
+        <button type="button" class="guide__close js-guide-close" aria-label="マップを閉じる" aria-controls="guide-map">×</button>
+      </div>
+      <!-- 中にリンクがあるので role="group"(role="img" だと中のリンクが読み上げられない) -->
+      <svg class="floor" viewBox="0 0 240 156" role="group" aria-labelledby="floor-title">
+        <title id="floor-title">展示室の平面図</title>
+        <!-- おすすめの順路(点線) -->
+        <path class="floor__route" d="M120 146 V114 H49 V31 H191 V80 H120 V108 H168 V142" />
+        <a href="#top" class="floor__room" data-map="entrance" aria-label="入口">
+          <rect x="98" y="132" width="44" height="20" /><text x="120" y="146">入口</text>
+        </a>
+        <a href="#greeting" class="floor__room" data-map="lobby" aria-label="ロビー(ごあいさつ・第1章)">
+          <rect x="84" y="100" width="72" height="28" /><text x="120" y="114">Lobby</text>
+        </a>
+        <a href="#room01" class="floor__room" data-map="r1" aria-label="Room 01 午後三時の線">
+          <rect x="18" y="58" width="62" height="70" /><text x="49" y="92">01</text>
+        </a>
+        <a href="#room02" class="floor__room floor__room--dark" data-map="r2" aria-label="Room 02 満ちる(暗室)">
+          <rect x="18" y="6" width="62" height="48" /><text x="49" y="30">02</text>
+        </a>
+        <a href="#corridor" class="floor__room" data-map="corridor" aria-label="回廊">
+          <rect x="84" y="6" width="72" height="26" /><text x="120" y="23">Corridor</text>
+        </a>
+        <a href="#room03" class="floor__room" data-map="r3" aria-label="Room 03 風のあと">
+          <rect x="160" y="6" width="62" height="48" /><text x="191" y="30">03</text>
+        </a>
+        <a href="#room04" class="floor__room" data-map="r4" aria-label="Room 04 のぼる影">
+          <rect x="160" y="58" width="62" height="70" /><text x="191" y="92">04</text>
+        </a>
+        <a href="#lounge" class="floor__room" data-map="lounge" aria-label="ラウンジ(ベンチ・作家のことば)">
+          <rect x="84" y="36" width="72" height="60" /><text x="120" y="66">Lounge</text>
+        </a>
+        <a href="#exit" class="floor__room" data-map="exit" aria-label="出口・ご来館案内">
+          <rect x="146" y="132" width="44" height="20" /><text x="168" y="146">出口</text>
+        </a>
+        <!-- 現在地のしるし(main.jsで位置を動かす) -->
+        <circle class="floor__here js-here" cx="0" cy="0" r="4" transform="translate(120 142)" />
+      </svg>
+      </div>
+    </div>
+    <div class="guide__bar">
+      <span class="guide__label">現在地</span>
+      <span class="guide__room js-guide-room">Entrance</span>
+      <button type="button" class="guide__open js-guide-open" aria-expanded="false" aria-controls="guide-map">Map</button>
+      <span class="guide__progress js-guide-progress" aria-hidden="true"></span>
+    </div>
+  </nav>
+
+  <!-- ===== 差し込む光 =====
+       「壁」にうっすら窓の光を落とす(文字や写真の下に敷く)。時間が進むと光の位置・傾き・色が変わる -->
+  <div class="sunlight js-sunlight" aria-hidden="true"></div>
+
+  <main>
+
+    <!-- ===== ENTRANCE (FV) ===== -->
+    <section class="fv js-room" id="top" data-room="Entrance" data-map="entrance">
+      <div class="fv__inner">
+        <p class="fv__lead">日常の中に、静かな時間を。</p>
+        <div class="fv__visual">
+          <!-- 1文字ずつ span に分けているので、読み上げ用に aria-label でまとめる -->
+          <h1 class="fv__title" aria-label="光と余白">
+            <span>光</span><span>と</span><span>余</span><span>白</span>
+          </h1>
+          <div class="fv__photo">
+            <img src="img/fv02.jpg" width="1402" height="1122" fetchpriority="high" alt="窓枠の形をした光が白い壁と床に斜めに落ちている展示室">
+          </div>
+        </div>
+        <div class="fv__info">
+          <p class="fv__date">
+            10.18<small>SAT</small><span class="fv__dash">–</span>12.14<small>SUN</small>
+          </p>
+          <p class="fv__place">○○現代美術館</p>
+        </div>
+      </div>
+      <a href="#greeting" class="fv__scroll">Scroll</a>
+    </section>
+
+    <!-- ===== ごあいさつ =====
+         美術館の入口にある「壁面パネル」をそのまま再現する -->
+    <section class="greeting js-room" id="greeting" data-room="Greeting" data-map="lobby">
+      <div class="panel js-fade">
+        <p class="panel__head">ごあいさつ</p>
+        <h2 class="panel__title">光の中に、<br>余白を見つける。</h2>
+        <div class="panel__text">
+          <p>窓から差し込む光が、壁の上をゆっくりと移ろっていく。私たちは毎日その光を目にしながら、立ち止まって見つめることはほとんどありません。</p>
+          <p>本展では、光・影・空間をテーマに制作を続ける3名の作家の作品を通して、何もない場所＝「余白」が持つ豊かさをたどります。</p>
+          <p>情報にあふれた日々の中で、少しだけ、静かな時間を過ごしてみませんか。</p>
+        </div>
+        <p class="panel__sign">○○現代美術館</p>
+      </div>
+      <!-- 撮影案内：写真好きの方に向けて、入口で「どの作品なら撮ってよいか」をはっきり伝える
+           動いている作品(カーテンの映像)は撮影不可にし、見るだけの時間にしてもらう -->
+      <div class="photo-ok js-fade">
+        <p class="photo-ok__head"><svg class="icon" aria-hidden="true"><use href="#icon-camera"></use></svg><span>一部の作品は撮影OKです</span></p>
+        <!-- 「撮れる作品」と「撮れない作品」で段落を分け、PCでは意味の切れ目で改行する -->
+        <p class="photo-ok__text phrase">キャプションに「撮影OK」とある<wbr>作品は、<br class="pc-only">写真に残して<wbr>お持ち帰り<wbr>いただけます。<br>SNSへの<wbr>投稿も<wbr>歓迎しています。</p>
+        <p class="photo-ok__text phrase">動きのある作品<wbr>《風のあと》<wbr>(Room 03)だけは<wbr>撮影できません。<br>揺れる光は、<wbr>その場で<wbr>目に焼きつけて<wbr>ください。</p>
+        <p class="photo-ok__note phrase">フラッシュ・<wbr>三脚・<wbr>自撮り棒の<wbr>ご使用と、<wbr>動画撮影は<wbr>ご遠慮ください。</p>
+      </div>
+      <p class="greeting__hint phrase js-fade">おすすめの順路は<wbr> Room 01 から 04 へ。<br class="sp-only">スクロールで、<wbr>館内を<wbr>ゆっくり<wbr>歩いてみてください。</p>
+    </section>
+
+    <!-- ===== 第1章 解説パネル(旧CONCEPT) =====
+         作品を見る前に「見方」を手渡す。暗い背景で展示室に入る前の切り替えに -->
+    <section class="concept js-room" id="concept" data-room="Chapter 1" data-map="lobby">
+      <div class="concept__inner">
+        <div class="concept__visual js-fade">
+          <img src="img/concept.jpg" width="928" height="1152" loading="lazy" decoding="async" alt="大きな窓の形をした光が壁に落ちている">
+          <h2 class="concept__title">「余白」が<br>生み出すもの</h2>
+        </div>
+        <div class="concept__body">
+          <p class="label label--light js-fade">Chapter 1</p>
+          <p class="concept__lead js-fade">余白は、何もない場所ではありません。<br>光が届き、空気が流れ、<br>見る人の思いが入りこむための場所です。</p>
+          <ol class="concept__list">
+            <li class="js-fade">
+              <h3 class="concept__kanji">光</h3>
+              <div>
+                <p>形を持たない光は、壁や床に触れてはじめて姿を現します。余白があるからこそ、光は見えるのです。</p>
+              </div>
+            </li>
+            <li class="js-fade">
+              <h3 class="concept__kanji">空</h3>
+              <div>
+                <p>作品と作品のあいだの距離も、展示の一部です。歩く速さや立ち止まる場所で、見え方が変わります。</p>
+              </div>
+            </li>
+            <li class="js-fade">
+              <h3 class="concept__kanji">静</h3>
+              <div>
+                <p>音や情報を少しだけ減らすと、自分の感覚が戻ってくる。静けさは、感じるための余白です。</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 展示室：1作品＝1部屋 =====
+         作品を壁に「掛け」、横にキャプションプレートを置く。
+         部屋と部屋のあいだに「過ごす時間」(旧EXPERIENCE)をはさむ -->
+
+    <!-- 間：光を見る -->
+    <section class="interlude js-room" id="walk01" data-room="Gallery" data-map="r1">
+      <figure class="interlude__img js-fade"><img src="img/exp01.jpg" width="1312" height="816" loading="lazy" decoding="async" alt="光が差し込む展示室で、壁の光を見つめる人"></figure>
+      <div class="interlude__text js-fade">
+        <p class="interlude__num">Gallery</p>
+        <h2 class="interlude__title">光を見る</h2>
+        <p>午前と午後で、展示室に差し込む光は姿を変えます。同じ作品でも、訪れる時間によって違う表情に出会えます。</p>
+      </div>
+    </section>
+
+    <section class="room js-room" id="room01" data-room="Room 01" data-map="r1">
+      <div class="room__wall">
+        <h2 class="room__no">Room <span>01</span></h2>
+        <figure class="room__work js-fade">
+          <img src="img/work01.jpg" width="928" height="1152" loading="lazy" decoding="async" alt="縦に並ぶ光の筋が壁に落ちる作品">
+        </figure>
+        <div class="caption js-fade">
+          <h3 class="caption__title">午後三時の線</h3>
+          <p class="caption__artist">白石 透 <span>Toru Shiraishi</span></p>
+          <p class="caption__meta">2026／ブラインド、自然光<br>H 320 × W 540 cm</p>
+          <p class="caption__photo"><svg class="icon" aria-hidden="true"><use href="#icon-camera"></use></svg>撮影OK</p>
+          <p class="caption__text">ブラインド越しの光を、時間の「目盛り」として捉えたインスタレーション。見る時間によって線の角度が少しずつ変わります。</p>
+          <p class="caption__best"><span>Best time</span>14:00 – 15:30</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="room room--dark js-room" id="room02" data-room="Room 02" data-map="r2">
+      <div class="room__wall room__wall--reverse">
+        <h2 class="room__no">Room <span>02</span></h2>
+        <figure class="room__work js-fade">
+          <img src="img/work02.jpg" width="1024" height="1024" loading="lazy" decoding="async" alt="暗い壁に浮かぶ円形の光">
+        </figure>
+        <div class="caption js-fade">
+          <h3 class="caption__title">満ちる</h3>
+          <p class="caption__artist">早瀬 灯 <span>Akari Hayase</span></p>
+          <p class="caption__meta">2025／プロジェクター、暗室<br>Φ 180 cm</p>
+          <p class="caption__photo"><svg class="icon" aria-hidden="true"><use href="#icon-camera"></use></svg>撮影OK<small>(フラッシュ不可)</small></p>
+          <p class="caption__text">暗がりに一つだけ浮かぶ円い光。何もない壁が、光ひとつで「場所」に変わる瞬間を描きます。</p>
+          <p class="caption__best"><span>Note</span>暗室のため、目が慣れるまで少しお待ちください</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 間：空間を歩く -->
+    <section class="interlude interlude--reverse js-room" id="corridor" data-room="Corridor" data-map="corridor">
+      <figure class="interlude__img js-fade"><img src="img/exp02.jpg" width="1312" height="816" loading="lazy" decoding="async" alt="光と影が分かれる長い展示室を歩く人"></figure>
+      <div class="interlude__text js-fade">
+        <p class="interlude__num">Corridor</p>
+        <h2 class="interlude__title">空間を歩く</h2>
+        <p>おすすめの順路はありますが、寄り道も歓迎です。気になった光のほうへ、ゆっくり歩いてみてください。</p>
+      </div>
+    </section>
+
+    <section class="room js-room" id="room03" data-room="Room 03" data-map="r3">
+      <div class="room__wall">
+        <h2 class="room__no">Room <span>03</span></h2>
+        <figure class="room__work js-fade">
+          <img src="img/work03.jpg" width="1024" height="1024" loading="lazy" decoding="async" alt="カーテン越しにゆらぐやわらかな光">
+        </figure>
+        <div class="caption js-fade">
+          <h3 class="caption__title">風のあと</h3>
+          <p class="caption__artist">早瀬 灯 <span>Akari Hayase</span></p>
+          <p class="caption__meta">2026／映像(12分ループ)、リネン<br>H 280 × W 420 cm</p>
+          <p class="caption__photo"><svg class="icon" aria-hidden="true"><use href="#icon-camera-off"></use></svg>撮影不可<small>(ご鑑賞のみ)</small></p>
+          <p class="caption__text">薄い布を透過した光のゆらぎを記録した映像作品。風が止んだあとの、わずかな揺れに目を向けます。</p>
+          <p class="caption__best"><span>Note</span>映像は12分。展示室のベンチから、最後までゆっくりご覧いただけます</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="room js-room" id="room04" data-room="Room 04" data-map="r4">
+      <div class="room__wall room__wall--reverse">
+        <h2 class="room__no">Room <span>04</span></h2>
+        <figure class="room__work js-fade">
+          <img src="img/work04.jpg" width="928" height="1152" loading="lazy" decoding="async" alt="床から壁へ階段状に重なる影">
+        </figure>
+        <div class="caption js-fade">
+          <h3 class="caption__title">のぼる影</h3>
+          <p class="caption__artist">真柴 澄 <span>Sumi Mashiba</span></p>
+          <p class="caption__meta">2026／木材、照明／新作<br>H 360 × W 600 × D 240 cm</p>
+          <p class="caption__photo"><svg class="icon" aria-hidden="true"><use href="#icon-camera"></use></svg>撮影OK</p>
+          <p class="caption__text">展示室の床から壁へと続く影の段差。歩く位置によって、影と自分の関係が変化していきます。</p>
+          <p class="caption__best"><span>Best time</span>16:00 – 17:00</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 間：座る(ここだけ写真を全幅にし、言葉を1行に絞ってスクロールの速度を落とさせる) -->
+    <section class="bench js-room" id="lounge" data-room="Lounge" data-map="lounge">
+      <figure class="bench__img"><img src="img/exp03.jpg" width="1312" height="816" loading="lazy" decoding="async" alt="やわらかな光が落ちる展示室で、ベンチに座る人の後ろ姿"></figure>
+      <div class="bench__text js-fade">
+        <p>ここで、<br class="sp-only">少し座りませんか。</p>
+        <p class="bench__sub">展示室の各所にベンチがあります。<br>光が動くのを、ただ待つ時間も本展の一部です。</p>
+      </div>
+    </section>
+
+    <!-- ===== 作家のことば(旧ARTISTS) ===== -->
+    <section class="artists js-room" id="artists" data-room="Artists" data-map="lounge">
+      <div class="inner">
+        <div class="sec-head js-fade">
+          <p class="label">Artists</p>
+          <h2 class="sec-title">作家のことば</h2>
+        </div>
+        <ul class="artists__list">
+          <li class="artist js-fade">
+            <figure class="artist__img"><img src="img/artist01.jpg" width="928" height="1152" loading="lazy" decoding="async" alt="白石 透の肖像"></figure>
+            <blockquote class="artist__quote">光は、時計よりも正確に<br>時間を教えてくれる。</blockquote>
+            <p class="artist__en">Toru Shiraishi</p>
+            <h3 class="artist__name">白石 透</h3>
+            <p class="artist__text">1985年生まれ。建築設計事務所を経て美術作家に。日常の光を「時間の痕跡」として扱うインスタレーションを中心に発表している。</p>
+          </li>
+          <li class="artist js-fade">
+            <figure class="artist__img"><img src="img/artist02.jpg" width="928" height="1152" loading="lazy" decoding="async" alt="早瀬 灯の肖像"></figure>
+            <blockquote class="artist__quote">暗さがあるから、<br>光は「ここ」になる。</blockquote>
+            <p class="artist__en">Akari Hayase</p>
+            <h3 class="artist__name">早瀬 灯</h3>
+            <p class="artist__text">1990年生まれ。映像と照明を用い、光と布、光と空気の関係を探る。国内外の芸術祭に多数参加。</p>
+          </li>
+          <li class="artist js-fade">
+            <figure class="artist__img"><img src="img/artist03.jpg" width="928" height="1152" loading="lazy" decoding="async" alt="真柴 澄の肖像"></figure>
+            <blockquote class="artist__quote">影の中に立つと、<br>自分の輪郭がわかる。</blockquote>
+            <p class="artist__en">Sumi Mashiba</p>
+            <h3 class="artist__name">真柴 澄</h3>
+            <p class="artist__text">1982年生まれ。影と身体の関係をテーマに、展示空間そのものを作品化する。本展では新作を発表。</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===== EXIT =====
+         擬似体験の締めくくり。「本物は写真と違う」ことを伝えて来館へつなぐ -->
+    <section class="exit js-room" id="exit" data-room="Exit" data-map="exit">
+      <div class="exit__inner js-fade">
+        <p class="exit__lead">写真の中で、<br class="sp-only">光は止まっています。</p>
+        <p class="exit__text">本当の展示室では、<br class="sp-only">光はいまも少しずつ動いています。<br>その移ろいは、<br class="sp-only">その場所に立った人にしか見えません。</p>
+      </div>
+    </section>
+
+    <!-- ===== ご来館案内(INFORMATION) ===== -->
+    <section class="information js-room" id="information" data-room="Information" data-map="exit">
+      <div class="inner inner--narrow">
+        <div class="sec-head js-fade">
+          <p class="label">Information</p>
+          <h2 class="sec-title">ご来館案内</h2>
+        </div>
+
+        <!-- 「いつ行くか」を決めてもらうための、時間帯のおすすめ -->
+        <div class="besttime js-fade">
+          <p class="besttime__head">光がうつくしい時間</p>
+          <ul>
+            <li><span>10:00 – 12:00</span>白くやわらかな朝の光。比較的空いています</li>
+            <li><span>14:00 – 15:30</span>《午後三時の線》がいちばん長く伸びる時間</li>
+            <li><span>金・土 17:00 –</span>夜間開館。夕暮れから夜へ、光の色が変わります</li>
+          </ul>
+        </div>
+
+        <dl class="info js-fade">
+          <div class="info__row">
+            <dt><span class="info__en">Period</span>会期</dt>
+            <dd>
+              <p class="info__big">10.18<small>SAT</small> – 12.14<small>SUN</small></p>
+              <p class="info__note">休館日：月曜日(祝日の場合は翌平日)</p>
+            </dd>
+          </div>
+          <div class="info__row">
+            <dt><span class="info__en">Hours</span>開館時間</dt>
+            <dd>
+              <p>10:00 – 18:00<br>金・土曜日は 20:00 まで</p>
+              <p class="info__note">※入館は閉館の30分前まで</p>
+            </dd>
+          </div>
+          <div class="info__row">
+            <dt><span class="info__en">Venue</span>会場</dt>
+            <dd><p>○○現代美術館 2F 企画展示室</p></dd>
+          </div>
+          <div class="info__row">
+            <dt><span class="info__en">Admission</span>入場料</dt>
+            <dd>
+              <table class="price">
+                <tr><th>一般</th><td>1,600円</td></tr>
+                <tr><th>大学生・専門学校生</th><td>1,000円</td></tr>
+                <tr><th>高校生</th><td>600円</td></tr>
+                <tr><th>中学生以下</th><td>無料</td></tr>
+              </table>
+              <p class="info__note">※オンラインチケットは各200円引き<br>※障がい者手帳をお持ちの方と付添1名は無料</p>
+            </dd>
+          </div>
+          <div class="info__row">
+            <dt><span class="info__en">Photo</span>撮影</dt>
+            <dd>
+              <p>一部の作品を除き、撮影いただけます(静止画のみ)</p>
+              <p class="info__note">※《風のあと》(Room 03)は撮影できません<br>※フラッシュ・三脚・自撮り棒のご使用、動画撮影はご遠慮ください<br>※投稿の際は「#光と余白展」をつけていただけるとうれしいです</p>
+            </dd>
+          </div>
+          <div class="info__row">
+            <dt><span class="info__en">Access</span>アクセス</dt>
+            <dd>
+              <p>○○線「○○駅」東口より徒歩5分<br>△△線「△△駅」2番出口より徒歩8分</p>
+              <p class="info__note">※駐車場はございません。公共交通機関をご利用ください。</p>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ===== TICKET / CTA ===== -->
+    <section class="cta js-room" id="ticket" data-room="Ticket" data-map="exit">
+      <div class="cta__bg"><img src="img/fv02.jpg" width="1402" height="1122" loading="lazy" decoding="async" alt=""></div>
+      <div class="cta__inner js-fade">
+        <p class="label label--light">Ticket</p>
+        <h2 class="cta__title">この光を、<br class="sp-only">見に来てください。</h2>
+        <p class="cta__text phrase">オンラインチケットなら<wbr>各200円引き。<wbr>当日窓口に<wbr>並ばずに<wbr>ご入場いただけます。</p>
+        <div class="cta__btns">
+          <a href="#" class="btn btn--primary">オンラインで購入する</a>
+          <a href="#" class="btn btn--ghost">Googleマップで見る</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p class="footer__name">○○現代美術館</p>
+    <p class="footer__address">〒000-0000 ○○県○○市○○町1-2-3　TEL 00-0000-0000</p>
+    <small class="footer__copy">&copy; ○○ Museum of Contemporary Art</small>
+  </footer>
+
+  <!-- body の最後で読み込むので、HTMLの読み込みが終わってから実行される -->
+  <script src="js/main.js"></script>
+</body>
+</html>
